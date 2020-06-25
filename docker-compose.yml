@@ -1,0 +1,44 @@
+version: '3'
+services:
+  cargo:
+    image: nmejia/rust:1.44
+    environment:
+      - USER=${CURRENT_UID}
+    volumes:
+      - ${PWD}:/opt/app
+      - ./registry:/root/.cargo/registry
+    working_dir: /opt/app
+
+  sam:
+    image: pahud/aws-sam-cli:0.52.0
+    environment:
+      - USER=${CURRENT_UID}
+      - AWS_DEFAULT_REGION=${AWS_REGION}
+    env_file: .env
+    volumes:
+      - ${PWD}:/opt/app
+    working_dir: /opt/app
+    entrypoint: sam
+    command: ["--help"]
+
+  lambda:
+    image: lambci/lambda:provided
+    env_file: .env
+    environment:
+      - DOCKER_LAMBDA_USE_STDIN=1
+      - IS_OFFLINE=true
+    volumes:
+      - ${PWD}/dist:/var/task:ro,delegated
+
+  localstack:
+    image: localstack/localstack:0.11.0
+    environment:
+      - DEFAULT_REGION=${AWS_REGION}
+      - DATA_DIR=/tmp/localstack/data
+      - HOSTNAME=localstack
+      - HOSTNAME_EXTERNAL=localstack
+    ports:
+      - 4566:4566
+
+  dockerize:
+    image: jwilder/dockerize

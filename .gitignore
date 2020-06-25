@@ -1,0 +1,9 @@
+/target
+**/*.rs.bk
+/registry
+**/*.zip
+Cargo.lock
+.env
+.aws-sam/
+*.json
+dist/

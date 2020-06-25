@@ -1,0 +1,114 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: |
+  SAM Template for a mini quiz game
+
+Globals:
+  Function:
+    Timeout: 5
+
+Parameters:
+  AwsACMCert:
+    Type: String
+  DomainName:
+    Type: String
+  AwsHostedZone:
+    Type: String
+  QuizTable:
+    Type: String
+
+Resources:
+  QuizletCreateRoomFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: quizlet-create-room
+      CodeUri: bootstrap.zip
+      Handler: createRoom.handler
+      Runtime: provided
+      MemorySize: 512
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /rooms
+            Method: POST
+      Environment:
+        Variables:
+          RUST_BACKTRACE: 1
+          QUIZ_EVENTS_TABLE: !Ref QuizTable
+      Policies:
+        - Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:PutItem
+            Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QuizTable}
+
+  QuizletGameEvents:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: room_code
+          AttributeType: S
+        - AttributeName: created
+          AttributeType: N
+      KeySchema:
+        - AttributeName: room_code
+          KeyType: HASH
+        - AttributeName: created
+          KeyType: RANGE
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
+      TableName: QuizletGameEvents
+      BillingMode: PAY_PER_REQUEST
+      TimeToLiveSpecification:
+        AttributeName: expiry
+        Enabled: true
+
+  QuizletApiDomainName:
+    Type: AWS::ApiGateway::DomainName
+    Properties:
+      CertificateArn: !Ref AwsACMCert
+      DomainName: !Ref DomainName
+      SecurityPolicy: TLS_1_2
+
+  BasePathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      BasePath: api
+      DomainName:
+        Ref: QuizletApiDomainName
+      RestApiId:
+        Ref: ServerlessRestApi
+      Stage: Prod
+
+  RecordSet:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: !Ref AwsHostedZone
+      Name: !Ref DomainName
+      Type: A
+      AliasTarget:
+        HostedZoneId: Z2FDTNDATAQYW2
+        DNSName:
+          Fn::GetAtt:
+            - QuizletApiDomainName
+            - DistributionDomainName
+
+  RecordSetAAAA:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: !Ref AwsHostedZone
+      Name: !Ref DomainName
+      Type: AAAA
+      AliasTarget:
+        HostedZoneId: Z2FDTNDATAQYW2
+        DNSName:
+          Fn::GetAtt:
+            - QuizletApiDomainName
+            - DistributionDomainName
+
+Outputs:
+  QuizletCreateRoomAPI:
+    Description: "API Gateway endpoint URL for Prod environment for createRoom function"
+    Value: !Sub "https://${DomainName}/api/rooms/"

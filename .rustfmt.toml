@@ -1,0 +1,6 @@
+edition = "2018"
+# match_block_trailing_comma = true
+use_small_heuristics = "Max"
+max_width = 120
+reorder_imports = true
+# tab_spaces = 2
