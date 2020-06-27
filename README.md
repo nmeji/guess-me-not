@@ -1,5 +1,6 @@
 # Quizlet
 
+[![deploy status](https://github.com/nmeji/quizlet/workflows/Deploy/badge.svg)](https://github.com/nmeji/quizlet/actions)
 [![License](https://img.shields.io/dub/l/vibe-d.svg)](LICENSE)
 
 A mini quiz game. :teacher: :student:
