@@ -11,4 +11,5 @@ sam deploy \
 		"AwsACMCert=$AWS_ACM_CERTIFICATE" \
 		"DomainName=$DOMAIN_NAME" \
 		"AwsHostedZone=$AWS_HOSTED_ZONE" \
-		"QuizTable=$QUIZ_EVENTS_TABLE"
+		"QuizTable=$QUIZ_EVENTS_TABLE" \
+	>/dev/null
