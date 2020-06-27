@@ -26,7 +26,7 @@ $(ARTIFACTS_DIR):
 shell:
 	@$(CARGO_SHELL)
 
-samShell:
+samShell: .env
 	@$(SAM_SHELL)
 
 clean:
@@ -62,7 +62,7 @@ pack: $(ARTIFACTS_DIR)
 	@$(CARGO_SHELL) -c "make _pack"
 
 _pack:
-	zip -j $(ARTIFACT) ./dist/bootstrap
+	zip -j $(ARTIFACT) $(ARTIFACTS_DIR)/bootstrap
 
 testLocal: $(ARTIFACTS_DIR) localstack
 	@cat apigw-event.json | docker-compose run --rm lambda
@@ -71,7 +71,7 @@ localstack:
 	@docker-compose exec localstack echo "localstack is still up" || \
 	$(MAKE) dbLocal
 
-dbLocal: stopLocalstack startLocalstack
+dbLocal: .env stopLocalstack startLocalstack
 	@$(SAM_SHELL) -c "./scripts/set-creds.sh && aws dynamodb create-table \
 	--table-name \$$QUIZ_EVENTS_TABLE --attribute-definitions \
 	AttributeName=room_code,AttributeType=S AttributeName=created,AttributeType=N \
@@ -86,5 +86,5 @@ startLocalstack:
 stopLocalstack:
 	@docker-compose rm -sf localstack
 
-deploy: $(ARTIFACT)
+deploy: .env $(ARTIFACT)
 	@$(SAM_SHELL) -c "./scripts/assume-role.sh && ./scripts/deploy.sh"

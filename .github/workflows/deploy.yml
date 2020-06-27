@@ -1,0 +1,25 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ master ]
+    paths: [ .github/workflows/deploy.yml ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Deploy
+      run: make deploy
+      env:
+        ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
+        SECRET_ACCESS_KEY: ${{ secrets.SECRET_ACCESS_KEY }}
+        AWS_REGION: ap-southeast-1
+        AWS_ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+        AWS_ROLE: fun-quizlet-ci
+        AWS_ACM_CERTIFICATE: ${{ secrets.AWS_ACM_CERTIFICATE }}
+        DOMAIN_NAME: quiz.nikomejia.com
+        AWS_HOSTED_ZONE: nikomejia.
+        QUIZ_EVENTS_TABLE: QuizletGameEvents
