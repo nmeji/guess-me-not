@@ -65,7 +65,7 @@ _pack:
 	zip -j $(ARTIFACT) $(ARTIFACTS_DIR)/bootstrap
 
 testLocal: $(ARTIFACTS_DIR) localstack
-	@cat apigw-event.json | docker-compose run --rm lambda
+	@cat test/events/apigw-proxy.json | docker-compose run --rm lambda
 
 localstack:
 	@docker-compose exec localstack echo "localstack is still up" || \
